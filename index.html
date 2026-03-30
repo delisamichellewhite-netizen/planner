@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Life Compass"/>
+<title>My Life Compass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cinzel:wght@400;600;700&family=Josefin+Sans:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #080b0e; --surface: #0d1117; --card: #111820;
+    --accent: #1565c0; --accent-soft: #5c9ce6;
+    --rose: #ad1457; --rose-soft: #e85d8a;
+    --sage: #00695c; --sage-soft: #26a69a;
+    --lav: #6a1b9a; --lav-soft: #ab47bc;
+    --teal: #006064; --teal-soft: #26c6da;
+    --text: #dce8f0; --muted: #4a5a6a; --border: #1a2535;
+    --deco: #8b6914;
+    --font-display: 'Cormorant Garamond', Georgia, serif;
+    --font-body: 'Josefin Sans', 'Trebuchet MS', sans-serif;
+    --font-deco: 'Cinzel', Georgia, serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--bg); overflow-x: hidden; }
+  body { font-family: var(--font-body); color: var(--text); -webkit-font-smoothing: antialiased; letter-spacing: .03em; font-size: 16px; }
+  textarea, input { font-family: var(--font-body); background: transparent; border: none; outline: none; color: var(--text); resize: none; width: 100%; letter-spacing: .03em; font-size: 16px; }
+  textarea::placeholder, input::placeholder { color: var(--muted); }
+  button { cursor: pointer; }
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+  .fade-in { animation: fadeIn .35s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.5;} }
+  .pulsing { animation: pulse 1.5s infinite; }
+
+/* Layout */
+#app { max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; background: var(–bg); }
+
+/* Header */
+#header { background: var(–surface); border-bottom: 1px solid var(–border); position: sticky; top: 0; z-index: 100; }
+#deco-stripe { height: 3px; background: linear-gradient(90deg, var(–lav), var(–accent), var(–sage), var(–rose), var(–teal)); }
+#title-bar { padding: 14px 20px 0; display: flex; align-items: center; justify-content: space-between; }
+#title-left { display: flex; align-items: center; gap: 10px; }
+#title-bar-line { width: 2px; height: 28px; background: linear-gradient(180deg, var(–accent), var(–lav)); }
+#title-main { font-family: var(–font-deco); font-size: 16px; font-weight: 700; color: var(–accent-soft); letter-spacing: .25em; text-transform: uppercase; }
+#title-sub { font-family: var(–font-display); font-size: 17px; color: var(–muted); letter-spacing: .15em; font-style: italic; }
+#title-gem { font-family: var(–font-deco); font-size: 18px; color: var(–deco); }
+
+/* Tabs */
+#tabs { display: flex; overflow-x: auto; scrollbar-width: none; margin-top: 10px; }
+#tabs::-webkit-scrollbar { display: none; }
+.tab-btn { padding: 8px 12px 10px; border: none; background: transparent; color: var(–muted); font-size: 16px; font-family: var(–font-deco); letter-spacing: .18em; text-transform: uppercase; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; border-bottom: 2px solid transparent; border-top: 1px solid transparent; transition: all .2s; }
+.tab-btn.active { background: var(–card); border-bottom: 2px solid currentColor; border-top: 1px solid var(–border); }
+.tab-btn .tab-icon { font-size: 16px; }
+.tab-daily.active { color: var(–accent-soft); }
+.tab-weekly.active { color: var(–teal-soft); }
+.tab-monthly.active { color: var(–sage-soft); }
+.tab-yearly.active { color: var(–lav-soft); }
+.tab-sharpen.active { color: var(–rose-soft); }
+.tab-soul.active { color: var(–lav-soft); }
+
+/* Content */
+#content { padding: 20px 14px 100px; }
+.view { display: none; }
+.view.active { display: block; }
+
+/* Footer */
+#footer { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(–surface); border-top: 1px solid var(–border); padding: 8px 20px; text-align: center; z-index: 99; }
+#footer-line { height: 1px; background: linear-gradient(90deg, transparent, var(–deco), transparent); margin-bottom: 6px; }
+#footer-text { font-size: 16px; color: var(–muted); letter-spacing: .18em; font-family: var(–font-deco); text-transform: uppercase; }
+
+/* Cards */
+.card { background: var(–card); border: 1px solid var(–border); padding: 18px 16px; margin-bottom: 12px; position: relative; }
+.card-accent-lav { border-color: rgba(106,27,154,.33); }
+.card-accent-rose { border-color: rgba(173,20,87,.33); }
+.card-accent-sage { border-color: rgba(0,105,92,.33); }
+.card-accent-teal { border-color: rgba(0,96,100,.33); }
+.card-accent-accent { border-color: rgba(21,101,192,.33); }
+.deco-corner { position: absolute; width: 10px; height: 10px; }
+.deco-tl { top: 6px; left: 6px; border-top: 2px solid var(–deco); border-left: 2px solid var(–deco); }
+.deco-tr { top: 6px; right: 6px; border-top: 2px solid var(–deco); border-right: 2px solid var(–deco); }
+.deco-bl { bottom: 6px; left: 6px; border-bottom: 2px solid var(–deco); border-left: 2px solid var(–deco); }
+.deco-br { bottom: 6px; right: 6px; border-bottom: 2px solid var(–deco); border-right: 2px solid var(–deco); }
+.deco-corner-accent { border-color: var(–accent-soft) !important; }
+.deco-corner-lav { border-color: var(–lav-soft) !important; }
+.deco-corner-rose { border-color: var(–rose-soft) !important; }
+.deco-corner-sage { border-color: var(–sage-soft) !important; }
+.deco-corner-teal { border-color: var(–teal-soft) !important; }
+
+/* Typography */
+.section-title { font-family: var(–font-deco); font-size: 17px; font-weight: 600; color: var(–teal-soft); margin-bottom: 12px; letter-spacing: .18em; text-transform: uppercase; }
+.section-title.accent { font-size: 20px; margin-bottom: 18px; letter-spacing: .15em; border-bottom: 1px solid rgba(255,255,255,.1); padding-bottom: 8px; }
+.section-title.color-teal { color: var(–teal-soft); }
+.section-title.color-lav { color: var(–lav-soft); }
+.section-title.color-rose { color: var(–rose-soft); }
+.section-title.color-sage { color: var(–sage-soft); }
+.label { font-size: 16px; font-weight: 600; color: var(–muted); letter-spacing: .18em; text-transform: uppercase; margin-bottom: 8px; font-family: var(–font-deco); }
+.label-accent { color: var(–accent-soft); }
+.label-lav { color: var(–lav-soft); }
+.label-rose { color: var(–rose-soft); }
+.label-teal { color: var(–teal-soft); }
+.label-sage { color: var(–sage-soft); }
+
+/* Inputs */
+.field { background: var(–surface); border: 1px solid var(–border); padding: 11px 13px; font-size: 16px; line-height: 1.7; width: 100%; color: var(–text); letter-spacing: .02em; font-family: var(–font-body); display: block; }
+input.field { padding: 8px 12px; }
+.field::placeholder { color: var(–muted); }
+.inline-input { flex: 1; font-size: 16px; color: var(–text); background: var(–surface); border: 1px solid var(–border); padding: 7px 10px; font-family: var(–font-body); }
+
+/* Date nav */
+.date-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.date-nav-btn { background: none; border: 1px solid rgba(21,101,192,.27); color: var(–accent-soft); padding: 8px 16px; font-size: 16px; font-family: var(–font-deco); }
+.date-center { text-align: center; }
+.date-dow { font-family: var(–font-deco); font-size: 17px; color: var(–accent-soft); letter-spacing: .25em; text-transform: uppercase; margin-bottom: 4px; }
+.date-main { font-family: var(–font-display); font-size: 30px; font-weight: 700; color: var(–accent-soft); font-style: italic; line-height: 1; }
+.date-year { font-size: 16px; color: var(–muted); margin-top: 4px; letter-spacing: .2em; font-family: var(–font-deco); }
+.today-jump { margin-top: 6px; font-size: 9px; color: var(–accent-soft); background: none; border: 1px solid rgba(21,101,192,.33); letter-spacing: .15em; font-family: var(–font-deco); text-transform: uppercase; padding: 3px 10px; }
+
+/* Priority tasks */
+.priority-section { margin-bottom: 14px; }
+.priority-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.priority-badge { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; color: #fff; font-family: var(–font-deco); clip-path: polygon(10% 0%,90% 0%,100% 10%,100% 90%,90% 100%,10% 100%,0% 90%,0% 10%); flex-shrink: 0; }
+.priority-label { font-size: 16px; color: var(–muted); letter-spacing: .18em; font-family: var(–font-deco); text-transform: uppercase; }
+.task-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.task-check { width: 18px; height: 18px; border: 2px solid currentColor; background: transparent; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; flex-shrink: 0; }
+.task-check.done { background: currentColor; }
+.task-input { flex: 1; font-size: 16px; background: transparent; border: none; outline: none; font-family: var(–font-body); letter-spacing: .03em; color: var(–text); }
+.task-input.done { text-decoration: line-through; color: var(–muted); }
+.add-task-btn { font-size: 17px; background: none; border: none; letter-spacing: .15em; font-family: var(–font-deco); text-transform: uppercase; opacity: .8; }
+
+/* Month nav */
+.month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.month-nav-btn { background: none; border: 1px solid rgba(0,105,92,.33); color: var(–sage-soft); padding: 6px 14px; font-size: 16px; font-family: var(–font-deco); }
+.month-title { font-family: var(–font-deco); font-size: 16px; font-weight: 700; color: var(–sage-soft); letter-spacing: .2em; text-transform: uppercase; }
+
+/* Calendar */
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+.cal-day-name { text-align: center; font-size: 17px; color: var(–muted); font-weight: 600; padding: 4px 0; font-family: var(–font-deco); letter-spacing: .1em; }
+.cal-day { text-align: center; padding: 8px 2px; font-size: 17px; color: var(–text); }
+.cal-day.today { background: var(–accent); color: var(–bg); font-weight: 700; }
+
+/* Affirmation card */
+.affirmation-text { font-family: var(–font-display); font-size: 18px; font-style: italic; color: var(–lav-soft); line-height: 1.7; }
+.section-micro { font-size: 16px; letter-spacing: .22em; text-transform: uppercase; margin-bottom: 10px; font-family: var(–font-deco); }
+
+/* Gratitude rows */
+.gratitude-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.grat-diamond { color: var(–rose-soft); font-size: 17px; flex-shrink: 0; font-family: var(–font-deco); }
+
+/* Time blocks */
+.time-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+.time-label { font-size: 16px; color: var(–sage-soft); width: 74px; flex-shrink: 0; padding-top: 8px; font-weight: 600; letter-spacing: .1em; font-family: var(–font-deco); }
+
+/* Big rocks */
+.rock-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.rock-num { width: 24px; height: 24px; background: var(–accent); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: var(–bg); flex-shrink: 0; }
+
+/* Year grid */
+.year-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.year-cell { background: var(–surface); padding: 10px 12px; }
+.year-cell-label { font-size: 16px; color: var(–accent-soft); font-weight: 600; letter-spacing: .12em; margin-bottom: 4px; font-family: var(–font-deco); }
+
+/* Sharpening habits */
+.habit-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.habit-pill { padding: 7px 14px; border-radius: 20px; font-size: 16px; border: 1px solid var(–border); color: var(–muted); background: var(–surface); transition: all .2s; }
+.habit-pill.active { background: var(–accent); color: var(–bg); border-color: var(–accent); font-weight: 600; }
+.sharpen-area-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+.sharpen-icon { font-size: 24px; }
+.sharpen-title { font-family: var(–font-deco); font-size: 17px; font-weight: 700; color: var(–accent-soft); letter-spacing: .1em; }
+.sharpen-desc { font-size: 16px; color: var(–muted); margin-top: 3px; }
+
+/* AI button */
+.ai-btn { width: 100%; padding: 14px; background: var(–lav); color: #fff; border: none; font-size: 17px; font-weight: 600; font-family: var(–font-deco); letter-spacing: .2em; text-transform: uppercase; }
+.ai-btn:disabled { background: var(–surface); color: var(–muted); }
+.ai-result { margin-top: 14px; padding: 14px; background: var(–bg); border: 1px solid rgba(106,27,154,.2); font-size: 16px; color: var(–lav-soft); line-height: 1.9; white-space: pre-wrap; font-family: var(–font-display); font-style: italic; }
+
+/* Role rows */
+.role-label { font-size: 16px; color: var(–accent); font-weight: 600; margin-bottom: 4px; }
+.role-block { margin-bottom: 12px; }
+</style>
+
+</head>
+<body>
+<div id="app">
+  <!-- Header -->
+  <div id="header">
+    <div id="deco-stripe"></div>
+    <div id="title-bar">
+      <div id="title-left">
+        <div id="title-bar-line"></div>
+        <div>
+          <div id="title-main">My Life Compass</div>
+          <div id="title-sub">Franklin Covey · Art Deco Edition</div>
+        </div>
+      </div>
+      <div id="title-gem">✦</div>
+    </div>
+    <div id="tabs">
+      <button class="tab-btn tab-daily active" data-tab="daily"><span class="tab-icon">◈</span>Daily</button>
+      <button class="tab-btn tab-weekly" data-tab="weekly"><span class="tab-icon">◇</span>Weekly</button>
+      <button class="tab-btn tab-monthly" data-tab="monthly"><span class="tab-icon">◆</span>Monthly</button>
+      <button class="tab-btn tab-yearly" data-tab="yearly"><span class="tab-icon">✦</span>Yearly</button>
+      <button class="tab-btn tab-sharpen" data-tab="sharpen"><span class="tab-icon">❖</span>Sharpen</button>
+      <button class="tab-btn tab-soul" data-tab="soul"><span class="tab-icon">✧</span>Soul</button>
+    </div>
+  </div>
+
+  <!-- Content -->
+
+  <div id="content">
+
+```
+<!-- DAILY VIEW -->
+<div id="view-daily" class="view active fade-in">
+  <div class="date-nav">
+    <button class="date-nav-btn" id="prev-day">‹</button>
+    <div class="date-center">
+      <div class="date-dow" id="daily-dow"></div>
+      <div class="date-main" id="daily-date"></div>
+      <div class="date-year" id="daily-year"></div>
+      <button class="today-jump" id="today-jump" style="display:none">◈ Today</button>
+    </div>
+    <button class="date-nav-btn" id="next-day">›</button>
+  </div>
+
+  <div class="card card-accent-lav" style="background:linear-gradient(135deg,#0d0f1a,#111820)">
+    <div class="deco-corner deco-tl deco-corner-lav"></div><div class="deco-corner deco-tr deco-corner-lav"></div>
+    <div class="deco-corner deco-bl deco-corner-lav"></div><div class="deco-corner deco-br deco-corner-lav"></div>
+    <div class="section-micro" style="color:var(--lav-soft)">✧ Daily Affirmation</div>
+    <div class="affirmation-text" id="daily-affirmation"></div>
+  </div>
+
+  <div class="card card-accent-accent">
+    <div class="deco-corner deco-tl deco-corner-accent"></div><div class="deco-corner deco-tr deco-corner-accent"></div>
+    <div class="deco-corner deco-bl deco-corner-accent"></div><div class="deco-corner deco-br deco-corner-accent"></div>
+    <div class="label label-accent">Today's Intention</div>
+    <textarea class="field daily-field" data-key="intention" rows="2" placeholder="What is your intention for today? How will you show up?"></textarea>
+  </div>
+
+  <div class="card card-accent-teal">
+    <div class="deco-corner deco-tl deco-corner-teal"></div><div class="deco-corner deco-tr deco-corner-teal"></div>
+    <div class="deco-corner deco-bl deco-corner-teal"></div><div class="deco-corner deco-br deco-corner-teal"></div>
+    <div class="section-title color-teal">Daily Task Priorities</div>
+    <div id="daily-tasks-a"></div>
+    <div id="daily-tasks-b"></div>
+    <div id="daily-tasks-c"></div>
+  </div>
+
+  <div class="card card-accent-sage">
+    <div class="deco-corner deco-tl deco-corner-sage"></div><div class="deco-corner deco-tr deco-corner-sage"></div>
+    <div class="deco-corner deco-bl deco-corner-sage"></div><div class="deco-corner deco-br deco-corner-sage"></div>
+    <div class="section-title color-sage">Time Blocks</div>
+    <div id="daily-schedule"></div>
+  </div>
+
+  <div class="card card-accent-rose" style="background:linear-gradient(135deg,#0e0c10,#111820)">
+    <div class="deco-corner deco-tl deco-corner-rose"></div><div class="deco-corner deco-tr deco-corner-rose"></div>
+    <div class="deco-corner deco-bl deco-corner-rose"></div><div class="deco-corner deco-br deco-corner-rose"></div>
+    <div class="section-micro" style="color:var(--rose-soft)">❖ Gratitude Practice</div>
+    <div id="daily-gratitude"></div>
+  </div>
+
+  <div class="card card-accent-teal">
+    <div class="deco-corner deco-tl deco-corner-teal"></div><div class="deco-corner deco-tr deco-corner-teal"></div>
+    <div class="deco-corner deco-bl deco-corner-teal"></div><div class="deco-corner deco-br deco-corner-teal"></div>
+    <div class="label label-teal">End of Day Reflection</div>
+    <textarea class="field daily-field" data-key="reflection" rows="4" placeholder="What went well? What would you do differently? What did you learn?"></textarea>
+  </div>
+</div>
+
+<!-- WEEKLY VIEW -->
+<div id="view-weekly" class="view fade-in">
+  <div class="section-title accent color-teal">Weekly Compass</div>
+  <div class="card">
+    <div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div>
+    <div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>
+    <div class="label">This Week's Big Rocks (Top 3 Priorities)</div>
+    <div id="weekly-bigrocks"></div>
+  </div>
+  <div class="card">
+    <div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div>
+    <div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>
+    <div class="section-title">Roles &amp; Goals This Week</div>
+    <div id="weekly-roles"></div>
+  </div>
+  <div class="card">
+    <div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div>
+    <div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>
+    <div class="section-title">Weekly Task List</div>
+    <div id="weekly-tasks-a"></div>
+    <div id="weekly-tasks-b"></div>
+    <div id="weekly-tasks-c"></div>
+  </div>
+  <div class="card card-accent-lav">
+    <div class="deco-corner deco-tl deco-corner-lav"></div><div class="deco-corner deco-tr deco-corner-lav"></div>
+    <div class="deco-corner deco-bl deco-corner-lav"></div><div class="deco-corner deco-br deco-corner-lav"></div>
+    <div class="label label-lav">✧ Weekly Affirmations</div>
+    <textarea class="field" id="weekly-affirmations" rows="4" placeholder="Write your affirmations for the week — present tense, positive, personal..."></textarea>
+  </div>
+  <div class="card">
+    <div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div>
+    <div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>
+    <div class="label">Weekly Review &amp; Reflection</div>
+    <textarea class="field" id="weekly-review" rows="5" placeholder="What wins did I celebrate? What can I improve? Am I aligned with my mission?"></textarea>
+  </div>
+</div>
+
+<!-- MONTHLY VIEW -->
+<div id="view-monthly" class="view fade-in">
+  <div class="month-nav">
+    <button class="month-nav-btn" id="prev-month">‹</button>
+    <div class="month-title" id="month-title"></div>
+    <button class="month-nav-btn" id="next-month">›</button>
+  </div>
+  <div class="card">
+    <div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div>
+    <div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>
+    <div class="cal-grid" id="cal-days-header"></div>
+    <div class="cal-grid" style="margin-top:4px" id="cal-days"></div>
+  </div>
+  <div class="card">
+    <div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div>
+    <div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>
+    <div class="section-title">Monthly Goals &amp; Intentions</div>
+    <div class="label">This Month's Theme</div>
+    <input class="field" id="monthly-theme" placeholder="e.g. Momentum, Clarity, Renewal..." style="margin-bottom:14px"/>
+    <div class="label">Top 3 Monthly Priorities</div>
+    <div id="monthly-priorities"></div>
+  </div>
+  <div class="card">
+    <div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div>
+    <div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>
+    <div class="label label-lav">Monthly Affirmation</div>
+    <textarea class="field" id="monthly-affirmation" rows="3" placeholder="My affirmation for this month..."></textarea>
+  </div>
+  <div class="card">
+    <div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div>
+    <div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>
+    <div class="label label-rose">Monthly Gratitude — What am I celebrating?</div>
+    <textarea class="field" id="monthly-gratitude" rows="3" placeholder="Wins, growth, people, moments to celebrate this month..."></textarea>
+  </div>
+  <div class="card">
+    <div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div>
+    <div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>
+    <div class="label">Monthly Reflection</div>
+    <textarea class="field" id="monthly-reflection" rows="4" placeholder="What did I accomplish? What shifted? What do I carry forward?"></textarea>
+  </div>
+</div>
+
+<!-- YEARLY VIEW -->
+<div id="view-yearly" class="view fade-in">
+  <div class="section-title accent color-lav" id="yearly-title"></div>
+  <div class="card" style="background:linear-gradient(135deg,#0d0f1a,#111820);border-color:rgba(21,101,192,.2)">
+    <div class="deco-corner deco-tl deco-corner-accent"></div><div class="deco-corner deco-tr deco-corner-accent"></div>
+    <div class="deco-corner deco-bl deco-corner-accent"></div><div class="deco-corner deco-br deco-corner-accent"></div>
+    <div class="label label-accent">Personal Mission Statement</div>
+    <textarea class="field" id="yearly-mission" rows="5" placeholder="My mission is to... (Write the statement that defines your life's purpose and direction)"></textarea>
+  </div>
+  <div class="card">
+    <div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div>
+    <div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>
+    <div class="label">My Core Values</div>
+    <textarea class="field" id="yearly-values" rows="3" placeholder="List the values that guide every decision you make..."></textarea>
+  </div>
+  <div class="card">
+    <div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div>
+    <div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>
+    <div class="section-title">Annual Goals by Life Area</div>
+    <div id="yearly-roles"></div>
+  </div>
+  <div class="card">
+    <div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div>
+    <div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>
+    <div class="label">My Word(s) of the Year</div>
+    <input class="field" id="yearly-word" placeholder="e.g. Flourish, Bold, Aligned..." style="font-family:var(--font-display);font-style:italic;color:var(--accent-soft);font-size:18px"/>
+  </div>
+  <div class="card">
+    <div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div>
+    <div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>
+    <div class="label label-lav">Annual Affirmations</div>
+    <textarea class="field" id="yearly-affirmations" rows="5" placeholder="Write 3–5 powerful affirmations for the year ahead..."></textarea>
+  </div>
+  <div class="card">
+    <div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div>
+    <div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>
+    <div class="section-title">Year at a Glance</div>
+    <div class="year-grid" id="yearly-glance"></div>
+  </div>
+</div>
+
+<!-- SHARPEN VIEW -->
+<div id="view-sharpen" class="view fade-in">
+  <div class="section-title accent color-rose">Sharpen the Saw</div>
+  <div style="font-family:var(--font-display);font-size:15px;color:var(--muted);margin-bottom:20px;line-height:1.6;font-style:italic">
+    "Preserve and enhance the greatest asset you have — you." — Stephen Covey
+  </div>
+  <div id="sharpen-areas"></div>
+  <div class="card">
+    <div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div>
+    <div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>
+    <div class="section-title">Weekly Renewal Plan</div>
+    <div class="label">This week I will dedicate time to...</div>
+    <textarea class="field" id="sharpen-weekly-plan" rows="4" placeholder="Schedule your renewal activities for each dimension..."></textarea>
+  </div>
+</div>
+
+<!-- SOUL VIEW -->
+<div id="view-soul" class="view fade-in">
+  <div class="section-title accent color-lav">Soul Work</div>
+  <div style="font-size:15px;color:var(--muted);margin-bottom:20px;font-style:italic;line-height:1.6">
+    Your affirmations, gratitude practice, and mission — the heart of everything.
+  </div>
+  <div class="card card-accent-lav" style="background:linear-gradient(135deg,#0c0b14,#111820)">
+    <div class="deco-corner deco-tl deco-corner-lav"></div><div class="deco-corner deco-tr deco-corner-lav"></div>
+    <div class="deco-corner deco-bl deco-corner-lav"></div><div class="deco-corner deco-br deco-corner-lav"></div>
+    <div class="section-micro" style="color:var(--lav-soft)">✧ AI Affirmation Generator</div>
+    <div class="label label-lav">What area do you want affirmations for?</div>
+    <input class="field" id="soul-focus" placeholder="e.g. career confidence, motherhood, health journey, leadership..." style="margin-bottom:12px"/>
+    <button class="ai-btn" id="ai-btn">✧ &nbsp; Generate Affirmations</button>
+    <div class="ai-result" id="ai-result" style="display:none"></div>
+  </div>
+  <div class="card">
+    <div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div>
+    <div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>
+    <div class="label">My Personal Affirmations Bank</div>
+    <textarea class="field" id="soul-affirmations" rows="6" placeholder="Write and collect your most powerful affirmations here..."></textarea>
+  </div>
+  <div class="card card-accent-rose">
+    <div class="deco-corner deco-tl deco-corner-rose"></div><div class="deco-corner deco-tr deco-corner-rose"></div>
+    <div class="deco-corner deco-bl deco-corner-rose"></div><div class="deco-corner deco-br deco-corner-rose"></div>
+    <div class="section-micro" style="color:var(--rose-soft)">❖ Gratitude Journal</div>
+    <div class="label">Deep Gratitude — What fills your heart?</div>
+    <textarea class="field" id="soul-deep-gratitude" rows="6" placeholder="Write freely about what you are truly grateful for — people, growth, moments, gifts..."></textarea>
+  </div>
+  <div class="card" style="background:linear-gradient(135deg,#0d0f1a,#111820);border-color:rgba(21,101,192,.27)">
+    <div class="deco-corner deco-tl deco-corner-accent"></div><div class="deco-corner deco-tr deco-corner-accent"></div>
+    <div class="deco-corner deco-bl deco-corner-accent"></div><div class="deco-corner deco-br deco-corner-accent"></div>
+    <div class="section-micro" style="color:var(--accent-soft)">◈ Personal Mission</div>
+    <textarea class="field" id="soul-mission" rows="5" placeholder="I am at my best when... My purpose is... The legacy I want to leave is..."></textarea>
+  </div>
+  <div class="card">
+    <div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div>
+    <div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>
+    <div class="label">Letter to My Future Self</div>
+    <textarea class="field" id="soul-letter" rows="6" placeholder="Dear future me... Write to the version of yourself one year from now."></textarea>
+  </div>
+</div>
+```
+
+  </div><!-- /content -->
+
+  <!-- Footer -->
+
+  <div id="footer">
+    <div id="footer-line"></div>
+    <div id="footer-text">✦ &nbsp; Begin with the end in mind &nbsp; ✦</div>
+  </div>
+</div><!-- /app -->
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DAYS_SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const ROLES = ["Professional","Parent/Family","Health & Wellness","Personal Growth","Relationships","Creative","Community"];
+const AFFIRMATIONS = [
+  "I am capable of achieving everything I set my mind to.",
+  "My work creates meaningful impact in the world.",
+  "I am becoming stronger and more resilient every day.",
+  "I show up fully for myself and the people I love.",
+  "Today I choose progress over perfection."
+];
+const HABIT_SUGGESTIONS = {
+  physical: ["Morning swim 🏊","30 min walk","Stretch / yoga","Healthy meal prep","8 hrs sleep","Hydration (8 cups)"],
+  mental: ["Read 20 min","Learn something new","Journal entry","Limit screen time","Podcast / audio book"],
+  social: ["Connect with Ed","Quality time w/ boys","Reach out to a friend","Acts of service","Express appreciation"],
+  spiritual: ["Morning meditation","Evening reflection","Gratitude practice","Nature time","Prayer / intention setting"]
+};
+const SHARPEN_AREAS = [
+  {key:"physical",label:"Physical",icon:"🏃",desc:"Exercise, nutrition, rest, stress management"},
+  {key:"mental",label:"Mental",icon:"📚",desc:"Reading, learning, writing, skills"},
+  {key:"social",label:"Social/Emotional",icon:"❤️",desc:"Relationships, service, empathy"},
+  {key:"spiritual",label:"Spiritual",icon:"✨",desc:"Values, meditation, nature, reflection"}
+];
+
+const STORAGE_KEY = "fc_planner_v2";
+let DATA = load();
+
+function load() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    return s ? JSON.parse(s) : defaultData();
+  } catch { return defaultData(); }
+}
+function defaultData() {
+  return { dailyByDate:{}, weekly:{bigRocks:["","",""],roles:{},aTasks:[{t:"",done:false}],bTasks:[{t:"",done:false}],cTasks:[{t:"",done:false}],affirmations:"",review:""}, monthly:{theme:"",priorities:["","",""],affirmation:"",gratitude:"",reflection:""}, yearly:{mission:"",values:"",goals:{},word:"",affirmations:"",yearGlance:{}}, sharpen:{habits:{},notes:{},weeklyPlan:""}, soul:{focus:"",affirmations:"",deepGratitude:"",mission:"",letter:""} };
+}
+function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA)); } catch {} }
+function emptyDay() { return {intention:"",aTasks:[{t:"",done:false}],bTasks:[{t:"",done:false}],cTasks:[{t:"",done:false}],schedule:{},gratitude:["","",""],reflection:""}; }
+
+// ── Date helpers ──────────────────────────────────────────────────────────────
+function todayObj() { const d=new Date(); return {y:d.getFullYear(),m:d.getMonth(),d:d.getDate(),dow:d.getDay()}; }
+function objToKey(o) { return `${o.y}-${String(o.m+1).padStart(2,"0")}-${String(o.d).padStart(2,"0")}`; }
+function keyToObj(k) { const [y,m,d]=k.split("-").map(Number); const dt=new Date(y,m-1,d); return {y:dt.getFullYear(),m:dt.getMonth(),d:dt.getDate(),dow:dt.getDay()}; }
+function offsetKey(k,delta) { const o=keyToObj(k); const dt=new Date(o.y,o.m,o.d+delta); return objToKey({y:dt.getFullYear(),m:dt.getMonth(),d:dt.getDate()}); }
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+let activeTab = "daily";
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    btn.classList.add("active");
+    const t = btn.dataset.tab;
+    document.getElementById("view-"+t).classList.add("active");
+    activeTab = t;
+    if(t==="monthly") renderCalendar();
+    if(t==="yearly") renderYearly();
+    if(t==="sharpen") renderSharpen();
+  });
+});
+
+// ── DAILY ─────────────────────────────────────────────────────────────────────
+const today = todayObj();
+const todayKey = objToKey(today);
+let viewKey = todayKey;
+
+function getDayData() { return DATA.dailyByDate[viewKey] || emptyDay(); }
+function setDayData(key, val) {
+  if(!DATA.dailyByDate[viewKey]) DATA.dailyByDate[viewKey] = emptyDay();
+  DATA.dailyByDate[viewKey][key] = val;
+  save();
+}
+
+function renderDaily() {
+  const vd = keyToObj(viewKey);
+  document.getElementById("daily-dow").textContent = DAYS_SHORT[vd.dow];
+  document.getElementById("daily-date").textContent = MONTHS[vd.m]+" "+vd.d;
+  document.getElementById("daily-year").textContent = vd.y + (viewKey===todayKey?" · TODAY":"");
+  document.getElementById("today-jump").style.display = viewKey===todayKey?"none":"inline-block";
+  document.getElementById("daily-affirmation").textContent = '"'+AFFIRMATIONS[vd.d % AFFIRMATIONS.length]+'"';
+
+  const dd = getDayData();
+  // intention
+  document.querySelector('[data-key="intention"]').value = dd.intention||"";
+  // reflection
+  document.querySelector('[data-key="reflection"]').value = dd.reflection||"";
+  // tasks
+  renderTaskSection("daily-tasks-a", dd.aTasks||[{t:"",done:false}], "A", "#ad1457", true);
+  renderTaskSection("daily-tasks-b", dd.bTasks||[{t:"",done:false}], "B", "#1565c0", true);
+  renderTaskSection("daily-tasks-c", dd.cTasks||[{t:"",done:false}], "C", "#00695c", true);
+  // schedule
+  const slots = ["6–8 AM","8–10 AM","10 AM–12 PM","12–2 PM","2–4 PM","4–6 PM","Evening"];
+  const sch = document.getElementById("daily-schedule");
+  sch.innerHTML = "";
+  slots.forEach(slot => {
+    const row = document.createElement("div"); row.className="time-row";
+    const lbl = document.createElement("div"); lbl.className="time-label"; lbl.textContent=slot;
+    const inp = document.createElement("input"); inp.className="inline-input"; inp.value=(dd.schedule||{})[slot]||""; inp.placeholder="···";
+    inp.addEventListener("input",()=>{ const s=getDayData().schedule||{}; s[slot]=inp.value; setDayData("schedule",s); });
+    row.appendChild(lbl); row.appendChild(inp); sch.appendChild(row);
+  });
+  // gratitude
+  const grat = document.getElementById("daily-gratitude");
+  grat.innerHTML="";
+  [0,1,2].forEach(i=>{
+    const row=document.createElement("div"); row.className="gratitude-row";
+    const diamond=document.createElement("span"); diamond.className="grat-diamond"; diamond.textContent="◆";
+    const inp=document.createElement("input"); inp.className="inline-input"; inp.value=(dd.gratitude||[])[i]||""; inp.placeholder="I am grateful for...";
+    inp.addEventListener("input",()=>{ const g=[...(getDayData().gratitude||["","",""])]; g[i]=inp.value; setDayData("gratitude",g); });
+    row.appendChild(diamond); row.appendChild(inp); grat.appendChild(row);
+  });
+}
+
+// Daily field listeners
+document.querySelectorAll(".daily-field").forEach(el=>{
+  el.addEventListener("input",()=>{ setDayData(el.dataset.key, el.value); });
+});
+document.getElementById("prev-day").addEventListener("click",()=>{ viewKey=offsetKey(viewKey,-1); renderDaily(); });
+document.getElementById("next-day").addEventListener("click",()=>{ viewKey=offsetKey(viewKey,1); renderDaily(); });
+document.getElementById("today-jump").addEventListener("click",()=>{ viewKey=todayKey; renderDaily(); });
+
+// ── Task renderer ─────────────────────────────────────────────────────────────
+function renderTaskSection(containerId, tasks, label, color, isDaily) {
+  const container = document.getElementById(containerId);
+  container.innerHTML="";
+  const labelMap = {A:"Critical · Must Do",B:"Important · Should Do",C:"Optional · Nice to Do"};
+  const hdr=document.createElement("div"); hdr.className="priority-header";
+  const badge=document.createElement("div"); badge.className="priority-badge"; badge.style.background=color; badge.textContent=label;
+  const lbl=document.createElement("span"); lbl.className="priority-label"; lbl.textContent=labelMap[label];
+  hdr.appendChild(badge); hdr.appendChild(lbl); container.appendChild(hdr);
+
+  tasks.forEach((task,i)=>{
+    const row=document.createElement("div"); row.className="task-row";
+    const check=document.createElement("button"); check.className="task-check"+(task.done?" done":""); check.style.color=color; check.style.borderColor=color;
+    check.textContent=task.done?"✓":"";
+    check.addEventListener("click",()=>{
+      tasks[i].done=!tasks[i].done; saveTaskKey(containerId,tasks,isDaily); renderTaskSection(containerId,tasks,label,color,isDaily);
+    });
+    const inp=document.createElement("input"); inp.className="task-input"+(task.done?" done":""); inp.value=task.t||""; inp.placeholder="Add "+label+" priority...";
+    inp.addEventListener("input",()=>{ tasks[i].t=inp.value; saveTaskKey(containerId,tasks,isDaily); });
+    row.appendChild(check); row.appendChild(inp); container.appendChild(row);
+  });
+
+  const addBtn=document.createElement("button"); addBtn.className="add-task-btn"; addBtn.style.color=color; addBtn.textContent="+ Add";
+  addBtn.addEventListener("click",()=>{ tasks.push({t:"",done:false}); saveTaskKey(containerId,tasks,isDaily); renderTaskSection(containerId,tasks,label,color,isDaily); });
+  container.appendChild(addBtn);
+}
+
+function saveTaskKey(containerId, tasks, isDaily) {
+  const keyMap = {
+    "daily-tasks-a":"aTasks","daily-tasks-b":"bTasks","daily-tasks-c":"cTasks",
+    "weekly-tasks-a":"aTasks","weekly-tasks-b":"bTasks","weekly-tasks-c":"cTasks"
+  };
+  const k = keyMap[containerId];
+  if(isDaily) setDayData(k, tasks);
+  else { DATA.weekly[k]=tasks; save(); }
+}
+
+// ── WEEKLY ────────────────────────────────────────────────────────────────────
+function renderWeekly() {
+  const w = DATA.weekly;
+  // big rocks
+  const br = document.getElementById("weekly-bigrocks"); br.innerHTML="";
+  [0,1,2].forEach(i=>{
+    const row=document.createElement("div"); row.className="rock-row";
+    const num=document.createElement("div"); num.className="rock-num"; num.textContent=i+1;
+    const inp=document.createElement("input"); inp.className="inline-input"; inp.value=(w.bigRocks||[])[i]||""; inp.placeholder="Big Rock "+(i+1)+"...";
+    inp.addEventListener("input",()=>{ if(!w.bigRocks)w.bigRocks=["","",""]; w.bigRocks[i]=inp.value; save(); });
+    row.appendChild(num); row.appendChild(inp); br.appendChild(row);
+  });
+  // roles
+  const rolesEl=document.getElementById("weekly-roles"); rolesEl.innerHTML="";
+  ROLES.forEach(role=>{
+    const block=document.createElement("div"); block.className="role-block";
+    const lbl=document.createElement("div"); lbl.className="role-label"; lbl.textContent=role;
+    const ta=document.createElement("textarea"); ta.className="field"; ta.rows=2; ta.placeholder="Goal / focus for "+role+" this week..."; ta.value=(w.roles||{})[role]||"";
+    ta.addEventListener("input",()=>{ if(!w.roles)w.roles={}; w.roles[role]=ta.value; save(); });
+    block.appendChild(lbl); block.appendChild(ta); rolesEl.appendChild(block);
+  });
+  renderTaskSection("weekly-tasks-a",w.aTasks||[{t:"",done:false}],"A","#ad1457",false);
+  renderTaskSection("weekly-tasks-b",w.bTasks||[{t:"",done:false}],"B","#1565c0",false);
+  renderTaskSection("weekly-tasks-c",w.cTasks||[{t:"",done:false}],"C","#00695c",false);
+  document.getElementById("weekly-affirmations").value=w.affirmations||"";
+  document.getElementById("weekly-review").value=w.review||"";
+}
+document.getElementById("weekly-affirmations").addEventListener("input",e=>{DATA.weekly.affirmations=e.target.value;save();});
+document.getElementById("weekly-review").addEventListener("input",e=>{DATA.weekly.review=e.target.value;save();});
+
+// ── MONTHLY ───────────────────────────────────────────────────────────────────
+let viewMonth=today.m, viewYear=today.y;
+function renderCalendar() {
+  document.getElementById("month-title").textContent=MONTHS[viewMonth]+" "+viewYear;
+  const hdr=document.getElementById("cal-days-header"); hdr.innerHTML="";
+  DAYS_SHORT.forEach(d=>{ const el=document.createElement("div"); el.className="cal-day-name"; el.textContent=d; hdr.appendChild(el); });
+  const grid=document.getElementById("cal-days"); grid.innerHTML="";
+  const first=new Date(viewYear,viewMonth,1).getDay();
+  const total=new Date(viewYear,viewMonth+1,0).getDate();
+  for(let i=0;i<first;i++){ grid.appendChild(document.createElement("div")); }
+  for(let d=1;d<=total;d++){
+    const el=document.createElement("div"); el.className="cal-day"; el.textContent=d;
+    if(d===today.d&&viewMonth===today.m&&viewYear===today.y) el.classList.add("today");
+    grid.appendChild(el);
+  }
+  const mo=DATA.monthly;
+  document.getElementById("monthly-theme").value=mo.theme||"";
+  document.getElementById("monthly-affirmation").value=mo.affirmation||"";
+  document.getElementById("monthly-gratitude").value=mo.gratitude||"";
+  document.getElementById("monthly-reflection").value=mo.reflection||"";
+  const pEl=document.getElementById("monthly-priorities"); pEl.innerHTML="";
+  [0,1,2].forEach(i=>{
+    const row=document.createElement("div"); row.className="rock-row"; row.style.marginBottom="8px";
+    const num=document.createElement("div"); num.className="rock-num"; num.textContent=i+1;
+    const inp=document.createElement("input"); inp.className="inline-input"; inp.value=(mo.priorities||[])[i]||""; inp.placeholder="Priority "+(i+1)+"...";
+    inp.addEventListener("input",()=>{ if(!mo.priorities)mo.priorities=["","",""]; mo.priorities[i]=inp.value; save(); });
+    row.appendChild(num); row.appendChild(inp); pEl.appendChild(row);
+  });
+}
+document.getElementById("prev-month").addEventListener("click",()=>{ if(viewMonth===0){viewMonth=11;viewYear--;} else viewMonth--; renderCalendar(); });
+document.getElementById("next-month").addEventListener("click",()=>{ if(viewMonth===11){viewMonth=0;viewYear++;} else viewMonth++; renderCalendar(); });
+["monthly-theme","monthly-affirmation","monthly-gratitude","monthly-reflection"].forEach(id=>{
+  const keyMap={"monthly-theme":"theme","monthly-affirmation":"affirmation","monthly-gratitude":"gratitude","monthly-reflection":"reflection"};
+  document.getElementById(id).addEventListener("input",e=>{ DATA.monthly[keyMap[id]]=e.target.value; save(); });
+});
+
+// ── YEARLY ────────────────────────────────────────────────────────────────────
+function renderYearly() {
+  document.getElementById("yearly-title").textContent=today.y+" · Annual Compass";
+  const yr=DATA.yearly;
+  document.getElementById("yearly-mission").value=yr.mission||"";
+  document.getElementById("yearly-values").value=yr.values||"";
+  document.getElementById("yearly-word").value=yr.word||"";
+  document.getElementById("yearly-affirmations").value=yr.affirmations||"";
+  const rolesEl=document.getElementById("yearly-roles"); rolesEl.innerHTML="";
+  ROLES.forEach(role=>{
+    const block=document.createElement("div"); block.className="role-block";
+    const lbl=document.createElement("div"); lbl.className="role-label"; lbl.textContent=role;
+    const ta=document.createElement("textarea"); ta.className="field"; ta.rows=2; ta.placeholder="What do you want to achieve this year in "+role+"?"; ta.value=(yr.goals||{})[role]||"";
+    ta.addEventListener("input",()=>{ if(!yr.goals)yr.goals={}; yr.goals[role]=ta.value; save(); });
+    block.appendChild(lbl); block.appendChild(ta); rolesEl.appendChild(block);
+  });
+  const glance=document.getElementById("yearly-glance"); glance.innerHTML="";
+  MONTHS.forEach(mo=>{
+    const cell=document.createElement("div"); cell.className="year-cell";
+    const lbl=document.createElement("div"); lbl.className="year-cell-label"; lbl.textContent=mo.toUpperCase();
+    const inp=document.createElement("input"); inp.style.cssText="width:100%;font-size:16px;color:var(--text);background:transparent;border:none;font-family:var(--font-body);outline:none;"; inp.value=(yr.yearGlance||{})[mo]||""; inp.placeholder="Key focus...";
+    inp.addEventListener("input",()=>{ if(!yr.yearGlance)yr.yearGlance={}; yr.yearGlance[mo]=inp.value; save(); });
+    cell.appendChild(lbl); cell.appendChild(inp); glance.appendChild(cell);
+  });
+}
+["yearly-mission","yearly-values","yearly-word","yearly-affirmations"].forEach(id=>{
+  const keyMap={"yearly-mission":"mission","yearly-values":"values","yearly-word":"word","yearly-affirmations":"affirmations"};
+  document.getElementById(id).addEventListener("input",e=>{ DATA.yearly[keyMap[id]]=e.target.value; save(); });
+});
+
+// ── SHARPEN ───────────────────────────────────────────────────────────────────
+function renderSharpen() {
+  const container=document.getElementById("sharpen-areas"); container.innerHTML="";
+  const dateKey=objToKey(today);
+  SHARPEN_AREAS.forEach(area=>{
+    const card=document.createElement("div"); card.className="card";
+    card.innerHTML=`<div class="deco-corner deco-tl"></div><div class="deco-corner deco-tr"></div><div class="deco-corner deco-bl"></div><div class="deco-corner deco-br"></div>`;
+    const hdr=document.createElement("div"); hdr.className="sharpen-area-header";
+    hdr.innerHTML=`<span class="sharpen-icon">${area.icon}</span><div><div class="sharpen-title">${area.label}</div><div class="sharpen-desc">${area.desc}</div></div>`;
+    card.appendChild(hdr);
+    const lbl=document.createElement("div"); lbl.className="label"; lbl.textContent="Today's Habits"; card.appendChild(lbl);
+    const pills=document.createElement("div"); pills.className="habit-pills";
+    HABIT_SUGGESTIONS[area.key].forEach(habit=>{
+      const btn=document.createElement("button"); btn.className="habit-pill";
+      const checked=((DATA.sharpen.habits||{})[area.key]||{})[dateKey]?.[habit]||false;
+      if(checked) btn.classList.add("active");
+      btn.textContent=habit;
+      btn.addEventListener("click",()=>{
+        if(!DATA.sharpen.habits)DATA.sharpen.habits={};
+        if(!DATA.sharpen.habits[area.key])DATA.sharpen.habits[area.key]={};
+        if(!DATA.sharpen.habits[area.key][dateKey])DATA.sharpen.habits[area.key][dateKey]={};
+        DATA.sharpen.habits[area.key][dateKey][habit]=!DATA.sharpen.habits[area.key][dateKey][habit];
+        save(); btn.classList.toggle("active");
+      });
+      pills.appendChild(btn);
+    });
+    card.appendChild(pills);
+    const notesLbl=document.createElement("div"); notesLbl.className="label"; notesLbl.textContent="Notes / Custom Activity"; card.appendChild(notesLbl);
+    const ta=document.createElement("textarea"); ta.className="field"; ta.rows=2; ta.placeholder="What are you doing to renew yourself "+area.label.toLowerCase()+"ly?"; ta.value=(DATA.sharpen.notes||{})[area.key]||"";
+    ta.addEventListener("input",()=>{ if(!DATA.sharpen.notes)DATA.sharpen.notes={}; DATA.sharpen.notes[area.key]=ta.value; save(); });
+    card.appendChild(ta);
+    container.appendChild(card);
+  });
+  document.getElementById("sharpen-weekly-plan").value=DATA.sharpen.weeklyPlan||"";
+}
+document.getElementById("sharpen-weekly-plan").addEventListener("input",e=>{ DATA.sharpen.weeklyPlan=e.target.value; save(); });
+
+// ── SOUL ──────────────────────────────────────────────────────────────────────
+function renderSoul() {
+  const s=DATA.soul;
+  document.getElementById("soul-focus").value=s.focus||"";
+  document.getElementById("soul-affirmations").value=s.affirmations||"";
+  document.getElementById("soul-deep-gratitude").value=s.deepGratitude||"";
+  document.getElementById("soul-mission").value=s.mission||"";
+  document.getElementById("soul-letter").value=s.letter||"";
+}
+["soul-focus","soul-affirmations","soul-deep-gratitude","soul-mission","soul-letter"].forEach(id=>{
+  const km={"soul-focus":"focus","soul-affirmations":"affirmations","soul-deep-gratitude":"deepGratitude","soul-mission":"mission","soul-letter":"letter"};
+  document.getElementById(id).addEventListener("input",e=>{ DATA.soul[km[id]]=e.target.value; save(); });
+});
+
+// AI Affirmation Generator
+document.getElementById("ai-btn").addEventListener("click", async ()=>{
+  const btn=document.getElementById("ai-btn");
+  const result=document.getElementById("ai-result");
+  const focus=document.getElementById("soul-focus").value||"personal growth, leadership, and living with intention";
+  btn.disabled=true; btn.classList.add("pulsing"); btn.textContent="Crafting your affirmations ···";
+  result.style.display="none";
+  try {
+    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:`Generate 5 powerful, personal affirmations for someone focused on: ${focus}. Make them present tense, first person, emotionally resonant, and specific. Format as a numbered list. Keep each one 1-2 sentences max. Be bold and uplifting.`}]})});
+    const data=await res.json();
+    const text=data.content?.map(b=>b.text||"").join("")||"Could not generate affirmations.";
+    result.textContent=text; result.style.display="block";
+  } catch { result.textContent="Connection error. Please try again."; result.style.display="block"; }
+  btn.disabled=false; btn.classList.remove("pulsing"); btn.textContent="✧  Generate Affirmations";
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+renderDaily();
+renderWeekly();
+renderCalendar();
+renderYearly();
+renderSharpen();
+renderSoul();
+</script>
+
+</body>
+</html>
